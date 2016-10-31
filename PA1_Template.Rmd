@@ -1,0 +1,87 @@
+Reproducible Research - Course Project 1
+==========================================================
+
+Autor: Lillyan Paes Barreto
+Date: 10-30-2016
+
+Loading the Data
+==========================================================
+
+  This first part reads the data into R. This data regards the number of steps taken by an individual each day from October,2012 to November, 2012.The file "activity.csv" must be in the working directory.
+  
+```{r}
+data = read.csv("activity.csv")
+```
+
+What is the mean total number of steps taken per day?
+==============
+
+In this part, I calculate the total number of steps taken per day. Then, I create the histogram of the total number of steps taken each day. At ;last, I compute the mean and median of the steps taken per day.
+
+```{r}
+library(plyr)
+stepssum = ddply(data,.(date),summarize,sum = sum(steps))
+mean.na = mean(stepssum$sum,na.rm = TRUE)
+median.na = median(stepssum$sum,na.rm = TRUE)
+hist(stepssum$sum,main = "Histogram of Total Number of Steps per day",xlab =" Total of steps per day")
+```
+
+The mean number of steps taken per day is `r mean.na`. The median of steps taken per day is `r median.na`.
+
+What is the average daily activity pattern?
+=============
+
+Here is the time series plot of the average number of steps taken during a given interval of the day.
+
+```{r}
+stepsinterval = aggregate(steps ~ interval, data, FUN = mean)
+plot(stepsinterval$interval,stepsinterval$steps, type = "l",xlab = "Interval",ylab = "Average number of steps taken",main = "Activity Daily Pattern")
+
+```
+
+Now, I find the interval when we have maximum activity.
+
+```{r}
+maxinterval = subset(stepsinterval,stepsinterval$steps == max(stepsinterval$steps))
+maxinterval = maxinterval[,1]
+```
+
+In the interval `r maxinterval`, I have the maximum number of steps.
+
+Imputing missing values
+===========================
+
+Here I compute the total number of NAs in the data set.
+
+```{r}
+numberofnas = table(is.na(data)["TRUE"])
+```
+
+The number of missing values in the data set is `r numberofnas`.
+
+I am going to substitute the missing values with the average number of steps in each interval. Then, I am going to create the histogram of the total of steps taken in a day.
+
+```{r}
+data$steps = ifelse(is.na(data$steps), stepsinterval$steps[match(data$interval, stepsinterval$interval)], data$steps)
+stepssumimp = ddply(data,.(date),summarize,sum = sum(steps))
+meanimp = mean(stepssumimp$sum,na.rm = TRUE)
+medianimp = median(stepssumimp$sum,na.rm = TRUE)
+hist(stepssumimp$sum,main = "Histogram of Total Number of Steps per day with imputed values",xlab =" Total of steps per day")
+
+```
+
+The mean and median of steps taken per day with the imputed values are, respectively, `r meanimp` and `r medianimp`. If we compare the values without NAs with the ones with imputed values, it is possible to see that there is no great difference between them.The means are the same, but the medians are different. The difference between the medians is `r medianimp - median.na`. The imputation of missing values transformed the distribution of total steps per day in a Gaussian distribution, with its mean equal to its median.
+
+Are there differences in activity patterns between weekdays and weekends?
+========================
+
+Here I transform the dates in days of the week and create a new variable that segregates the weekdays and weekends. Then, I create the following panel plot in order to compare the activity daily pattern during weekdays and weekends.
+
+```{r}
+library(ggplot2)
+data$date = as.POSIXct(data$date,tz = "GMT", "%Y-%m-%d")
+data$date = weekdays(data$date)
+data$daytype = ifelse(data$date == "sábado"|data$date == "domingo","weekend","weekday")
+data = aggregate(steps ~ daytype + interval,data,mean)
+ggplot(data,aes(interval,steps))+facet_grid(.~daytype)+geom_line(aes(interval,steps))
+```
