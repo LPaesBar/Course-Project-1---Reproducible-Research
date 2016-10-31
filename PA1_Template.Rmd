@@ -81,7 +81,11 @@ Here I transform the dates in days of the week and create a new variable that se
 library(ggplot2)
 data$date = as.POSIXct(data$date,tz = "GMT", "%Y-%m-%d")
 data$date = weekdays(data$date)
-data$daytype = ifelse(data$date == "sábado"|data$date == "domingo","weekend","weekday")
+data$daytype = ifelse(data$date == "s??bado"|data$date == "domingo","weekend","weekday")
 data = aggregate(steps ~ daytype + interval,data,mean)
 ggplot(data,aes(interval,steps))+facet_grid(.~daytype)+geom_line(aes(interval,steps))
 ```
+
+
+
+
