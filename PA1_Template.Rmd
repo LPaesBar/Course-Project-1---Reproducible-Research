@@ -10,7 +10,14 @@ Loading the Data
   This first part reads the data into R. This data regards the number of steps taken by an individual each day from October,2012 to November, 2012.The file "activity.csv" must be in the working directory.
   
 ```{r}
+if(!file.exists("getdata-projectfiles-UCI HAR Dataset.zip")) {
+        temp <- tempfile()
+        download.file("http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip",temp)
+        unzip(temp)
+        unlink(temp)
+        
 data = read.csv("activity.csv")
+}
 ```
 
 What is the mean total number of steps taken per day?
